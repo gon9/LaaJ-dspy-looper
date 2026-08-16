@@ -62,7 +62,7 @@ def test_invalid_jsonl():
     """不正なJSONL形式のテスト"""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
         f.write('{"text": "valid"}\n')
-        f.write('invalid json line\n')
+        f.write("invalid json line\n")
         temp_path = f.name
 
     try:

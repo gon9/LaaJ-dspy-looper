@@ -1,0 +1,12 @@
+{"expense_details": "取引先との接待飲食代 24,000円（参加者4名、事前伺い申請済）", "expected_status": "approved"}
+{"expense_details": "深夜の私的なオンラインゲーム課金代 5,000円", "expected_status": "rejected"}
+{"expense_details": "業務関連技術書の購入費 3,800円（領収書添付あり）", "expected_status": "approved"}
+{"expense_details": "個人の旅行に伴うお土産代 12,000円", "expected_status": "rejected"}
+{"expense_details": "出張時の新幹線特急券・乗車券 14,500円（東京-新大阪）", "expected_status": "approved"}
+{"expense_details": "プライベート用スポーツジムの月会費 10,000円", "expected_status": "rejected"}
+{"expense_details": "クラウドインフラ利用料 45,000円（開発環境検証用）", "expected_status": "approved"}
+{"expense_details": "私用の衣類購入費 18,000円", "expected_status": "rejected"}
+{"expense_details": "海外出張時の宿泊費 35,000円（社内旅費規程内）", "expected_status": "approved"}
+{"expense_details": "自宅近所での個人的な飲食費 4,200円", "expected_status": "rejected"}
+{"expense_details": "顧客訪問のためのタクシー代 2,800円（悪天候・緊急時）", "expected_status": "approved"}
+{"expense_details": "高級ブランドバッグの購入代金 150,000円", "expected_status": "rejected"}

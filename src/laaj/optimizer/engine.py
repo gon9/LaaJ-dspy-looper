@@ -1,6 +1,7 @@
 """Optimizer実行エンジン"""
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import dspy
 
@@ -64,9 +65,7 @@ class OptimizerEngine:
             dspy.Module: 最適化済みモジュール
         """
         if valset is not None:
-            optimized_module = optimizer.compile(
-                student=student, trainset=trainset, valset=valset
-            )
+            optimized_module = optimizer.compile(student=student, trainset=trainset, valset=valset)
         else:
             optimized_module = optimizer.compile(student=student, trainset=trainset)
 

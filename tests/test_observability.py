@@ -2,7 +2,6 @@
 
 import json
 import tempfile
-from pathlib import Path
 
 from laaj.observability import LocalLogger
 
@@ -15,9 +14,7 @@ def test_log_experiment():
         config = {"optimizer": "MIPROv2", "model": "gpt-4o-mini"}
         results = {"test_score": 0.85}
 
-        log_file = logger.log_experiment(
-            experiment_name="test_exp", config=config, results=results
-        )
+        log_file = logger.log_experiment(experiment_name="test_exp", config=config, results=results)
 
         assert log_file.exists()
 

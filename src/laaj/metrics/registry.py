@@ -2,19 +2,26 @@
 
 import importlib.util
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
+from typing import Any
 
 import dspy
 
 from laaj.metrics.exact_match import exact_match_metric
+from laaj.metrics.llm_judge import create_llm_judge_metric
+from laaj.metrics.semantic_similarity import create_semantic_similarity_metric
 
 
 class MetricRegistry:
     """メトリクス関数を管理するレジストリ"""
 
-    _builtin_metrics = {
+    _builtin_metrics: dict[
+        str, Callable[..., Callable[[dspy.Example, dspy.Prediction, Any], float]]
+    ] = {
         "exact_match": exact_match_metric,
+        "llm_judge": create_llm_judge_metric,
+        "semantic_similarity": create_semantic_similarity_metric,
     }
 
     @classmethod
@@ -24,7 +31,8 @@ class MetricRegistry:
         field: str | None = None,
         custom_path: str | None = None,
         custom_func: str | None = None,
-    ) -> Callable[[dspy.Example, dspy.Prediction, any], float]:
+        **kwargs: Any,
+    ) -> Callable[[dspy.Example, dspy.Prediction, Any], float]:
         """メトリクス関数を取得
 
         Args:
@@ -32,21 +40,49 @@ class MetricRegistry:
             field: 比較対象のフィールド名
             custom_path: カスタムメトリクスのファイルパス
             custom_func: カスタムメトリクスの関数名
+            **kwargs: メトリクスファクトリに渡す追加引数
 
         Returns:
             callable: メトリクス関数
 
         Raises:
-            ValueError: メトリクスが見つからない場合
+            ValueError: メトリクスが見つからない場合、または必須引数が不足している場合
         """
         if custom_path and custom_func:
             return cls._load_custom_metric(custom_path, custom_func)
 
-        if name in cls._builtin_metrics:
-            metric_factory = cls._builtin_metrics[name]
+        if name == "exact_match":
             if field is None:
-                raise ValueError(f"組み込みメトリクス '{name}' には field パラメータが必要です")
-            return metric_factory(field)
+                raise ValueError("組み込みメトリクス 'exact_match' には field パラメータが必要です")
+            return exact_match_metric(field)
+
+        elif name == "llm_judge":
+            criterion = kwargs.get(
+                "criterion", "期待される回答の内容・意図を満たしているかを判定してください。"
+            )
+            threshold = kwargs.get("threshold", 0.7)
+            field_name = field or "label"
+            return create_llm_judge_metric(
+                criterion=criterion,
+                threshold=threshold,
+                field_gold=field_name,
+                field_pred=field_name,
+            )
+
+        elif name == "semantic_similarity":
+            threshold = kwargs.get("threshold", 0.6)
+            field_name = field or "label"
+            return create_semantic_similarity_metric(
+                field_gold=field_name,
+                field_pred=field_name,
+                threshold=threshold,
+            )
+
+        elif name in cls._builtin_metrics:
+            factory = cls._builtin_metrics[name]
+            if field is not None:
+                return factory(field, **kwargs)
+            return factory(**kwargs)
 
         raise ValueError(f"メトリクス '{name}' が見つかりません")
 

@@ -40,9 +40,7 @@ class DatasetManager:
                     data = json.loads(line)
                     self._raw_data.append(data)
                 except json.JSONDecodeError as e:
-                    raise ValueError(
-                        f"JSONL形式エラー（行 {line_num}）: {e}"
-                    ) from e
+                    raise ValueError(f"JSONL形式エラー（行 {line_num}）: {e}") from e
 
         if not self._raw_data:
             raise ValueError("データセットが空です")

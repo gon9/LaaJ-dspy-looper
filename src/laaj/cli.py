@@ -8,9 +8,10 @@ import dspy
 
 from laaj.config import load_config
 from laaj.dataset import DatasetManager
+from laaj.export import ModuleInspector
 from laaj.metrics import MetricRegistry
 from laaj.modules import ModuleRegistry
-from laaj.observability import LocalLogger
+from laaj.observability import LangfuseBackend, LocalLogger
 from laaj.optimizer import OptimizerEngine
 
 
@@ -37,6 +38,7 @@ def optimize(config: str):
     click.echo(f"🚀 実験開始: {cfg.experiment.name}")
     click.echo(f"📝 説明: {cfg.experiment.description}")
 
+    _setup_observability(cfg.observability)
     _configure_lm(cfg.lm)
 
     click.echo(f"📊 データセットを読み込み中: {cfg.dataset.path}")
@@ -47,9 +49,7 @@ def optimize(config: str):
     trainset, valset, testset = dataset_manager.split(
         cfg.dataset.split.train, cfg.dataset.split.val, cfg.dataset.split.test
     )
-    click.echo(
-        f"📦 分割: train={len(trainset)}, val={len(valset)}, test={len(testset)}"
-    )
+    click.echo(f"📦 分割: train={len(trainset)}, val={len(valset)}, test={len(testset)}")
 
     click.echo(f"🔧 Moduleをロード中: {cfg.module.path}")
     student = ModuleRegistry.instantiate_module(cfg.module.path, cfg.module.class_name)
@@ -76,7 +76,7 @@ def optimize(config: str):
 
     output_dir = Path("outputs") / cfg.experiment.name
     output_dir.mkdir(parents=True, exist_ok=True)
-    module_path = output_dir / "optimized_module"
+    module_path = output_dir / "optimized_module.json"
     optimized_module.save(str(module_path))
     click.echo(f"💾 最適化済みModuleを保存: {module_path}")
 
@@ -104,9 +104,7 @@ def optimize(config: str):
     type=click.Path(exists=True),
     help="実験設定YAMLファイルのパス",
 )
-@click.option(
-    "--baseline", is_flag=True, help="ベースライン（最適化なし）で評価"
-)
+@click.option("--baseline", is_flag=True, help="ベースライン（最適化なし）で評価")
 @click.option(
     "--module-path",
     "-m",
@@ -163,6 +161,117 @@ def evaluate(config: str, baseline: bool, module_path: str | None):
         module_path=module_path,
     )
     click.echo(f"📝 評価ログを保存: {log_file}")
+
+
+@cli.command()
+@click.option(
+    "--config",
+    "-c",
+    required=True,
+    type=click.Path(exists=True),
+    help="実験設定YAMLファイルのパス",
+)
+@click.option(
+    "--module-path",
+    "-m",
+    required=True,
+    type=click.Path(exists=True),
+    help="最適化済みModuleのパス（.json）",
+)
+def diff(config: str, module_path: str):
+    """最適化前後のモジュール・プロンプト差分を表示"""
+    click.echo(f"📋 設定ファイルを読み込み中: {config}")
+    cfg = load_config(config)
+
+    click.echo("🔍 ベースラインと最適化済みModuleを比較中...")
+    base_module = ModuleRegistry.instantiate_module(cfg.module.path, cfg.module.class_name)
+    opt_module = ModuleRegistry.instantiate_module(cfg.module.path, cfg.module.class_name)
+    opt_module.load(module_path)
+
+    diff_data = ModuleInspector.diff_modules(base_module, opt_module)
+
+    click.echo("\n" + "=" * 60)
+    click.echo("⚡ プロンプト最適化 差分レポート")
+    click.echo("=" * 60)
+
+    for d in diff_data["diffs"]:
+        click.echo(f"\n[Predictor: {d['predictor_name']}]")
+        if d["instruction_changed"]:
+            click.echo("  📝 指示文 (Instruction) の変更:")
+            click.echo(f"    - Before: {d['base_instruction']}")
+            click.echo(f"    + After : {d['optimized_instruction']}")
+        else:
+            click.echo(f"  📝 指示文 (Instruction): 変更なし ({d['base_instruction']})")
+
+        click.echo(
+            f"  🎯 Few-Shot Demos: {d['base_demos_count']} 件 ➔ {d['optimized_demos_count']} 件 (差分: +{d['demos_added']} 件)"
+        )
+        if d["new_demos"]:
+            click.echo("  💡 注入されたデモ例:")
+            for i, demo in enumerate(d["new_demos"][:3], 1):
+                click.echo(f"     Demo {i}: {demo}")
+            if len(d["new_demos"]) > 3:
+                click.echo(f"     ... 他 {len(d['new_demos']) - 3} 件")
+
+    click.echo("\n" + "=" * 60)
+
+
+@cli.command()
+@click.option(
+    "--config",
+    "-c",
+    required=True,
+    type=click.Path(exists=True),
+    help="実験設定YAMLファイルのパス",
+)
+@click.option(
+    "--module-path",
+    "-m",
+    required=True,
+    type=click.Path(exists=True),
+    help="最適化済みModuleのパス（.json）",
+)
+@click.option(
+    "--format",
+    "-f",
+    type=click.Choice(["json", "markdown"]),
+    default="json",
+    help="出力フォーマット",
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    help="出力先ファイルパス（指定なしの場合は標準出力）",
+)
+def export(config: str, module_path: str, format: str, output: str | None):
+    """最適化済みModuleのプロンプト・設定をエクスポート"""
+    cfg = load_config(config)
+    content = ModuleInspector.export_module(
+        module_path=cfg.module.path,
+        class_name=cfg.module.class_name,
+        saved_path=module_path,
+        output_format=format,
+    )
+
+    if output:
+        Path(output).write_text(content, encoding="utf-8")
+        click.echo(f"💾 エクスポート完了: {output}")
+    else:
+        click.echo(content)
+
+
+def _setup_observability(obs_config) -> LangfuseBackend | None:
+    """Observabilityバックエンドの初期化"""
+    if obs_config.backend == "langfuse":
+        backend = LangfuseBackend(obs_config)
+        success = backend.initialize()
+        if success:
+            click.echo("📡 Langfuse トレーシングが有効化されました")
+            return backend
+        else:
+            click.echo("⚠️  Langfuse の初期化をスキップしました (Local ロギングを使用)")
+    return None
 
 
 def _configure_lm(lm_config):

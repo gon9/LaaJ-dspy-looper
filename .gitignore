@@ -42,6 +42,8 @@ htmlcov/
 # Project specific
 outputs/
 data/*.jsonl
+!data/example_dataset.jsonl
+!data/expense_approval.jsonl
 experiments/*.yaml
 !experiments/example.yaml
 
