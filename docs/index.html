@@ -10,16 +10,13 @@
       --bg-secondary: #f8fafc;
       --bg-code: #0f172a;
       --text-primary: #0f172a;
-      --text-secondary: #475569;
+      --text-secondary: #334155;
       --text-muted: #64748b;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
       --accent-light: #eff6ff;
       --border: #e2e8f0;
       --card-bg: #ffffff;
-      --success-bg: #f0fdf4;
-      --success-border: #86efac;
-      --success-text: #166534;
       --warn-bg: #fffbeb;
       --warn-border: #fde68a;
       --warn-text: #92400e;
@@ -38,9 +35,6 @@
         --accent-light: rgba(59, 130, 246, 0.1);
         --border: #1f2937;
         --card-bg: #111827;
-        --success-bg: rgba(34, 197, 94, 0.1);
-        --success-border: #166534;
-        --success-text: #86efac;
         --warn-bg: rgba(245, 158, 11, 0.1);
         --warn-border: #92400e;
         --warn-text: #fde68a;
@@ -55,7 +49,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
-      line-height: 1.7;
+      line-height: 1.75;
       color: var(--text-primary);
       background-color: var(--bg-primary);
       -webkit-font-smoothing: antialiased;
@@ -64,7 +58,7 @@
     .container {
       max-width: 1000px;
       margin: 0 auto;
-      padding: 24px 16px;
+      padding: 32px 20px;
     }
 
     header {
@@ -85,7 +79,7 @@
     }
 
     h1 {
-      font-size: 2rem;
+      font-size: 2.2rem;
       font-weight: 800;
       letter-spacing: -0.02em;
       margin-bottom: 8px;
@@ -94,27 +88,27 @@
 
     .subtitle {
       color: var(--text-secondary);
-      font-size: 1.05rem;
+      font-size: 1.1rem;
     }
 
     nav.toc {
       background: var(--bg-secondary);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 40px;
+      padding: 24px;
+      margin-bottom: 48px;
     }
 
     nav.toc h3 {
-      font-size: 1.1rem;
-      margin-bottom: 12px;
+      font-size: 1.15rem;
+      margin-bottom: 16px;
       color: var(--text-primary);
     }
 
     nav.toc ul {
       list-style: none;
       display: grid;
-      grid-gap: 8px;
+      grid-gap: 10px;
     }
 
     nav.toc a {
@@ -131,23 +125,29 @@
     }
 
     section.chapter {
-      margin-bottom: 60px;
-      padding-top: 20px;
+      margin-bottom: 72px;
+      padding-top: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 48px;
+    }
+
+    section.chapter:last-of-type {
+      border-bottom: none;
     }
 
     h2 {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: 700;
       border-left: 4px solid var(--accent);
-      padding-left: 12px;
-      margin-bottom: 20px;
+      padding-left: 14px;
+      margin-bottom: 24px;
       color: var(--text-primary);
     }
 
     h3 {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: 600;
-      margin: 24px 0 12px;
+      margin: 28px 0 14px;
       color: var(--text-primary);
     }
 
@@ -156,19 +156,10 @@
       color: var(--text-secondary);
     }
 
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px 0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
     .alert {
       border-left: 4px solid var(--accent);
       background: var(--accent-light);
-      padding: 16px;
+      padding: 18px;
       border-radius: 0 8px 8px 0;
       margin: 20px 0;
     }
@@ -181,19 +172,19 @@
 
     .alert strong {
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       color: var(--text-primary);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 20px 0;
-      font-size: 0.9rem;
+      margin: 24px 0;
+      font-size: 0.92rem;
     }
 
     th, td {
-      padding: 12px;
+      padding: 12px 14px;
       text-align: left;
       border-bottom: 1px solid var(--border);
     }
@@ -207,13 +198,13 @@
     pre {
       background: var(--bg-code);
       color: #f8fafc;
-      padding: 16px;
+      padding: 18px;
       border-radius: 8px;
       overflow-x: auto;
       font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Courier New", monospace;
-      font-size: 0.85rem;
-      margin: 16px 0;
-      line-height: 1.5;
+      font-size: 0.88rem;
+      margin: 18px 0;
+      line-height: 1.55;
     }
 
     code {
@@ -235,8 +226,8 @@
       background: var(--bg-secondary);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 14px 18px;
-      margin: 12px 0;
+      padding: 16px 20px;
+      margin: 14px 0;
     }
 
     summary {
@@ -249,10 +240,8 @@
       color: var(--accent);
     }
 
-    details p {
-      margin-top: 12px;
-      margin-bottom: 0;
-      color: var(--text-secondary);
+    details p, details pre {
+      margin-top: 14px;
     }
 
     .diagram {
@@ -261,27 +250,25 @@
       border-radius: 8px;
       padding: 16px;
       font-family: monospace;
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       white-space: pre;
       overflow-x: auto;
-      margin: 16px 0;
+      margin: 18px 0;
       color: var(--text-primary);
     }
 
     footer {
-      border-top: 1px solid var(--border);
-      padding: 32px 0;
+      padding: 40px 0;
       text-align: center;
       color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-top: 60px;
+      font-size: 0.88rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div class="badge">LaaJ-dspy-looper 学習コンテンツ</div>
+      <div class="badge">LaaJ-dspy-looper 学習コンテンツ 完全版</div>
       <h1>DSPy 体系的学習マスターガイド</h1>
       <p class="subtitle">評価駆動開発 (Eval-Driven Development) によるプロンプト自動最適化の完全習得</p>
     </header>
@@ -294,6 +281,9 @@
         <li><a href="#ch3">Chapter 3: 評価関数 (Metric) エンジニアリング & trace 引数</a></li>
         <li><a href="#ch4">Chapter 4: 自動最適化 (Optimizer) の実践 (BootstrapFewShot & MIPROv2)</a></li>
         <li><a href="#ch5">Chapter 5: LLM-as-a-Judge, 差分比較 & Observability (可視化)</a></li>
+        <li><a href="#ch6">Chapter 6: 高度な技術深掘り (Assertions, Pydantic, 過学習対策)</a></li>
+        <li><a href="#ch7">Chapter 7: コミュニティ最新動向 & 次世代技術 (GEPA, ReActV2, BetterTogether)</a></li>
+        <li><a href="#practice">Practice: ハンズオン実践課題集 & 解答例</a></li>
       </ul>
     </nav>
 
@@ -301,9 +291,6 @@
     <section class="chapter" id="ch1">
       <h2>Chapter 1: DSPy メンタルモデル & 思考のパラダイムシフト</h2>
       <p>従来の「プロンプトエンジニアリング」から DSPy への最大の転換点は、<strong>PyTorch と同じメンタルモデルを持つこと</strong> です。</p>
-
-      <h3>1. 従来のプロンプト開発の限界 (Prompt Decay)</h3>
-      <p>人間が手作業で指示文やFew-Shotを調整したプロンプトは、LLM モデルを GPT-4o ➔ Claude 3.5 ➔ Gemini 3.7 へ変更した瞬間に精度が急低下（劣化）します。</p>
 
       <div class="alert important">
         <strong>💡 黄金律: 開発者とアルゴリズムの役割分担</strong>
@@ -347,12 +334,6 @@
           </tr>
         </tbody>
       </table>
-
-      <h3>理解度チェック</h3>
-      <details>
-        <summary>Q1. モデルを GPT-4o から Claude 3.5 に変えた際、DSPy では何を行いますか？</summary>
-        <p>A1. プロンプトを手動で書き直す必要はありません。設定を切り替えて Optimizer（MIPROv2等）の <code>compile()</code> を再実行するだけで、Claude 3.5 に特化した指示文とデモ例が自動生成されます。</p>
-      </details>
     </section>
 
     <!-- Chapter 2 -->
@@ -360,7 +341,6 @@
       <h2>Chapter 2: 入出力設計 (Signature) & モジュール構築 (Module)</h2>
       <p>タスクの入出力仕様を宣言的に定義し、推論モジュールを組み立てます。</p>
 
-      <h3>1. Signature の定義</h3>
       <pre><code>import dspy
 
 class ExpenseApprovalSignature(dspy.Signature):
@@ -369,7 +349,6 @@ class ExpenseApprovalSignature(dspy.Signature):
     expense_details: str = dspy.InputField(desc="経費申請の詳細（品目、金額、理由等）")
     approval_status: str = dspy.OutputField(desc="approved または rejected")</code></pre>
 
-      <h3>2. Module の選定と使い分け</h3>
       <table>
         <thead>
           <tr>
@@ -419,18 +398,15 @@ Metric 呼び出し
         if is_exact:
             return 1.0
         elif gold in predicted:
-            return 0.5  # 部分一致
+            return 0.5
         return 0.0
 
-    # 評価時は完全一致のみ 1.0
     return 1.0 if is_exact else 0.0</code></pre>
     </section>
 
     <!-- Chapter 4 -->
     <section class="chapter" id="ch4">
       <h2>Chapter 4: 自動最適化 (Optimizer) の実践 (BootstrapFewShot & MIPROv2)</h2>
-      <p>データ件数と目的に応じて最適な Optimizer を選択します。</p>
-
       <table>
         <thead>
           <tr>
@@ -466,12 +442,67 @@ Metric 呼び出し
     <!-- Chapter 5 -->
     <section class="chapter" id="ch5">
       <h2>Chapter 5: LLM-as-a-Judge, 差分比較 & Observability (可視化)</h2>
-      
       <h3>1. プロンプト差分の確認 (<code>laaj diff</code>)</h3>
       <pre><code>uv run laaj diff --config experiments/example.yaml --module-path outputs/example_classification/optimized_module.json</code></pre>
 
       <h3>2. Langfuse によるモニタリング</h3>
       <p><code>openinference-instrumentation-dspy</code> により、LLM 呼び出しトレース、トークン消費量、レイテンシが Langfuse ダッシュボード上に自動記録されます。</p>
+    </section>
+
+    <!-- Chapter 6 -->
+    <section class="chapter" id="ch6">
+      <h2>Chapter 6: 高度な技術深掘り (Assertions, Pydantic, 過学習対策)</h2>
+      <h3>1. DSPy Assertions (`dspy.Assert`) による自己修復ループ</h3>
+      <pre><code># 制約違反時にLLMにエラー理由を与えて自動再試行（バックトラック）
+dspy.Assert(
+    len(lines) == 3,
+    f"箇条書きはちょうど3点である必要があります（現在 {len(lines)} 行）。修正してください。",
+    backtrack=True
+)</code></pre>
+
+      <h3>2. Pydantic による構造化抽出</h3>
+      <p>Pydantic の BaseModel を OutputField に指定することで、スキーマ検証・自動パース修復が行われます。</p>
+
+      <h3>3. 過学習防止策</h3>
+      <p>Train (70%) / Val (15%) / Test (15%) の完全分離、推論時の Temperature 0.0 固定、Meta-LLM 試行回数の制御。</p>
+    </section>
+
+    <!-- Chapter 7 -->
+    <section class="chapter" id="ch7">
+      <h2>Chapter 7: コミュニティ最新動向 & 次世代技術 (GEPA, ReActV2, BetterTogether)</h2>
+      <h3>1. GEPA (Genetic-Pareto Evolutionary Prompt Optimization)</h3>
+      <p>精度・文字数・コストのトレードオフを遺伝的パレート最適化で同時探索する次世代 Optimizer。</p>
+
+      <h3>2. BetterTogether</h3>
+      <p>プロンプト最適化で生成した高品質トレースを用いて小規模オープンモデル（Llama等）を LoRA ファインチューニングし、そのモデル向けにプロンプトを再最適化する相互強化ループ。</p>
+    </section>
+
+    <!-- Practice -->
+    <section class="chapter" id="practice">
+      <h2>Practice: ハンズオン実践課題集 & 解答例</h2>
+      <details>
+        <summary>課題 1: カスタマーサポートの緊急度判定 Signature を作成せよ</summary>
+        <pre><code>class SupportTriageSignature(dspy.Signature):
+    """顧客メッセージから緊急度(urgency)と対応部署(department)を判定する。"""
+    customer_message: str = dspy.InputField(desc="問い合わせ本文")
+    urgency: str = dspy.OutputField(desc="High, Medium, Low のいずれか")
+    department: str = dspy.OutputField(desc="Billing, Tech, General のいずれか")</code></pre>
+      </details>
+
+      <details>
+        <summary>課題 2: 部分一致を考慮した損失関数（Metric）を実装せよ</summary>
+        <pre><code>def triage_metric(example, pred, trace=None) -> float:
+    urgency_match = (getattr(pred, "urgency", "").lower() == getattr(example, "expected_urgency", "").lower())
+    dept_match = (getattr(pred, "department", "").lower() == getattr(example, "expected_dept", "").lower())
+
+    if urgency_match and dept_match:
+        return 1.0
+
+    if trace is not None:
+        return 0.5 if (urgency_match or dept_match) else 0.0
+
+    return 0.0</code></pre>
+      </details>
     </section>
 
     <footer>

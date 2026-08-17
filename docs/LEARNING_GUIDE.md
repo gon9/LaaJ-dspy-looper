@@ -1,7 +1,7 @@
-# DSPy 体系的学習マスターガイド (Learning Master Guide)
+# DSPy 体系的学習マスターガイド (Learning Master Guide - 完全版)
 
-> **対象**: LLM アプリケーション開発者、プロンプト最適化を自動化したいエンジニア  
-> **ゴール**: 評価駆動開発（Eval-Driven Development）と自動プロンプト最適化ループを自力で設計・構築できるようになる
+> **対象**: LLM アプリケーション開発者、プロンプト最適化を自動化したいエンジニア、AI Agent アーキテクト  
+> **ゴール**: 評価駆動開発（Eval-Driven Development）と自動プロンプト最適化ループを自力で設計・構築・運用できるようになる
 
 ---
 
@@ -12,6 +12,9 @@
 - [Chapter 3: 評価関数（Metric）エンジニアリング & trace 引数](#chapter-3-評価関数metricエンジニアリング--trace-引数)
 - [Chapter 4: 自動最適化（Optimizer）の実践 (BootstrapFewShot & MIPROv2)](#chapter-4-自動最適化optimizerの実践-bootstrapfewshot--miprov2)
 - [Chapter 5: LLM-as-a-Judge, 差分比較 & Observability (可視化)](#chapter-5-llm-as-a-judge-差分比較--observability-可視化)
+- [Chapter 6: 高度な技術深掘り（Assertions, Pydantic, 過学習対策）](#chapter-6-高度な技術深掘りassertions-pydantic-過学習対策)
+- [Chapter 7: コミュニティ最新動向 & 次世代技術 (GEPA, ReActV2, BetterTogether)](#chapter-7-コミュニティ最新動向--次世代技術-gepa-reactv2-bettertogether)
+- [Practice: ハンズオン実践課題集 & 解答例](#practice-ハンズオン実践課題集--解答例)
 
 ---
 
@@ -88,26 +91,15 @@ flowchart TD
 
 ## 1. Signature の定義: 2つのスタイル
 
-Signature は、LLM に対して「何を入力し、何を出力するか」を定義するインターフェースです。
-
-### 記法 A: クラスベース定義（推奨・実務向け）
-Pydantic 風にフィールドごとの型や説明文（`desc`）を明記できます。
-
 ```python
 import dspy
 
+# クラスベース定義（推奨）
 class ExpenseApprovalSignature(dspy.Signature):
     """提出された経費申請内容を審査し、承認(approved)または否認(rejected)を判定する。"""
 
     expense_details: str = dspy.InputField(desc="経費申請の詳細（品目、金額、理由等）")
     approval_status: str = dspy.OutputField(desc="approved または rejected")
-```
-
-### 記法 B: インライン定義（簡易プロトタイピング向け）
-```python
-# "入力1, 入力2 -> 出力1, 出力2"
-qa_sig = dspy.Signature("context, question -> answer")
-sentiment_sig = dspy.Signature("text -> sentiment: str")
 ```
 
 ---
@@ -148,18 +140,9 @@ example = dspy.Example(
 ).with_inputs("expense_details")
 ```
 
-> [!IMPORTANT]
-> **`.with_inputs("フィールド名")` の指定が必須**:
-> どのフィールドを「入力」とし、どのフィールドを「評価用メタデータ」とするかを区別します。
-
 ---
 
 ## 2. Metric 関数のインターフェースと `trace` 引数の二重性
-
-```python
-def my_metric(example, pred, trace=None) -> float:
-    # 0.0 〜 1.0 のスコア（または bool）を返す
-```
 
 | 実行フェーズ | `trace` の値 | 役割 | 推奨される戻り値 |
 | :--- | :--- | :--- | :--- |
@@ -189,7 +172,7 @@ flowchart TD
 
 ---
 
-## 2. `MIPROv2` (Multiprompt Instruction PRoposal Optimizer v2) の威力
+## 2. `MIPROv2` の内部メカニズム
 
 ```mermaid
 flowchart LR
@@ -200,9 +183,6 @@ flowchart LR
     D --> E[ミニバッチ評価<br>有望な組み合わせを絞り込み]
     E --> F[大バッチ検証<br>最高スコアのモジュールを出力]
 ```
-
-1. **Instruction Proposal (指示文提案)**: Meta-LLM が Signature とデータを分析し、多角的な指示文を自動生成。
-2. **Bayesian Optimization (ベイズ探索)**: Optuna の TPE アルゴリズムを用い、指示文と Few-Shot デモの組み合わせから最高精度のプロンプトを発見。
 
 ---
 
@@ -227,26 +207,106 @@ uv run laaj diff --config experiments/example.yaml --module-path outputs/example
 ============================================================
 ```
 
----
-
-## 2. Langfuse によるモニタリング
+## 2. Langfuse によるトレーシング
 
 ```mermaid
 flowchart TD
     D[DSPy Module / Optimizer] -->|OpenTelemetry OTLP| I[OpenInference DSPy Instrumentor]
     I -->|自動送信| L[Langfuse Dashboard]
-
-    subgraph Langfuse Dashboard
-        L1[トークン消費量・コスト集計]
-        L2[レイテンシ分析]
-        L3[中間推論ステップの可視化]
-        L4[最適化履歴のスコア比較]
-    end
 ```
 
 ---
 
-## 🏁 まとめ & 開発サイクル
+# Chapter 6: 高度な技術深掘り（Assertions, Pydantic, 過学習対策）
+
+## 1. DSPy Assertions と動的バックトラッキング (`dspy.Assert`)
+
+```python
+# 制約違反時にLLMにエラー理由を与えて自動再試行（バックトラック）
+dspy.Assert(
+    len(lines) == 3,
+    f"箇条書きはちょうど3点である必要があります（現在 {len(lines)} 行）。修正してください。",
+    backtrack=True
+)
+```
+
+## 2. Pydantic による型安全な構造化抽出
+
+```python
+from pydantic import BaseModel, Field
+import dspy
+
+class RiskReport(BaseModel):
+    is_safe: bool = Field(description="安全かどうか")
+    risk_score: float = Field(description="リスクスコア 0.0〜1.0")
+
+class AuditSignature(dspy.Signature):
+    contract_text: str = dspy.InputField()
+    report: RiskReport = dspy.OutputField()
+```
+
+## 3. 過学習（Overfitting）防止策
+1. **厳格な 3 分割**: Train (70%), Val (15%), Test (15%)
+2. **Temperature 分離**: 指示文生成時は `1.0`（多様性）、推論・評価時は `0.0`（決定性）
+3. **Reward Hacking 防止**: Judge に `reasoning` を強制し、冗長さに加点しない
+
+---
+
+# Chapter 7: コミュニティ最新動向 & 次世代技術 (GEPA, ReActV2, BetterTogether)
+
+## 1. GEPA (Genetic-Pareto Evolutionary Prompt Optimization)
+遺伝的アルゴリズムと多目的パレート最適化を用い、「**精度 ＋ 応答文字数の短さ ＋ トークンコスト**」の相反する目的を同時に最適化。
+
+## 2. BetterTogether (プロンプト最適化 ＋ LoRA Fine-Tuning)
+MIPROv2 で生成した高品質トレースで小規模モデル（Llama等）を LoRA ファインチューニングし、そのモデル向けにプロンプトを再最適化する相互強化ループ。
+
+---
+
+# Practice: ハンズオン実践課題集 & 解答例
+
+### 課題 1: カスタマーサポートの緊急度判定 Signature を作成せよ
+- 入力: `customer_message: str`
+- 出力: `urgency: str` (High, Medium, Low), `department: str` (Billing, Tech, General)
+
+<details>
+<summary><b>課題 1 の解答例</b></summary>
+
+```python
+import dspy
+
+class SupportTriageSignature(dspy.Signature):
+    """顧客メッセージから緊急度(urgency)と対応部署(department)を判定する。"""
+    customer_message: str = dspy.InputField(desc="問い合わせ本文")
+    urgency: str = dspy.OutputField(desc="High, Medium, Low のいずれか")
+    department: str = dspy.OutputField(desc="Billing, Tech, General のいずれか")
+```
+</details>
+
+### 課題 2: 部分一致を考慮した損失関数（Metric）を実装せよ
+- urgency と department の双方が正解なら 1.0 点
+- 片方のみ正解の場合、学習時 (`trace is not None`) は 0.5 点、評価時 (`trace is None`) は 0.0 点
+
+<details>
+<summary><b>課題 2 の解答例</b></summary>
+
+```python
+def triage_metric(example, pred, trace=None) -> float:
+    urgency_match = (getattr(pred, "urgency", "").lower() == getattr(example, "expected_urgency", "").lower())
+    dept_match = (getattr(pred, "department", "").lower() == getattr(example, "expected_dept", "").lower())
+
+    if urgency_match and dept_match:
+        return 1.0
+
+    if trace is not None:
+        return 0.5 if (urgency_match or dept_match) else 0.0
+
+    return 0.0
+```
+</details>
+
+---
+
+## 🏁 全体まとめ
 
 ```mermaid
 flowchart LR
@@ -257,5 +317,4 @@ flowchart LR
     5 --> 6[6. Langfuse モニタリング]
 ```
 
-これで DSPy によるプロンプト自動最適化サイクルの全容をマスターしました！
-実務での各タスクに合わせて `experiments/*.yaml` を作成し、`laaj optimize` を実行してみましょう。
+これですべての知識・技術・実践パターンを網羅しました！
