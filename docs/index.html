@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSPy プロンプト自動最適化 体系的学習ガイド | LaaJ-dspy-looper</title>
+  <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-code: #0f172a;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-light: #eff6ff;
+      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      --success-bg: #f0fdf4;
+      --success-border: #86efac;
+      --success-text: #166534;
+      --warn-bg: #fffbeb;
+      --warn-border: #fde68a;
+      --warn-text: #92400e;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #0b0f19;
+        --bg-secondary: #111827;
+        --bg-code: #030712;
+        --text-primary: #f9fafb;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --accent: #3b82f6;
+        --accent-hover: #60a5fa;
+        --accent-light: rgba(59, 130, 246, 0.1);
+        --border: #1f2937;
+        --card-bg: #111827;
+        --success-bg: rgba(34, 197, 94, 0.1);
+        --success-border: #166534;
+        --success-text: #86efac;
+        --warn-bg: rgba(245, 158, 11, 0.1);
+        --warn-border: #92400e;
+        --warn-text: #fde68a;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background-color: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    header {
+      padding: 40px 0 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+    }
+
+    nav.toc {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+
+    nav.toc h3 {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    nav.toc ul {
+      list-style: none;
+      display: grid;
+      grid-gap: 8px;
+    }
+
+    nav.toc a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+    }
+
+    nav.toc a:hover {
+      text-decoration: underline;
+    }
+
+    section.chapter {
+      margin-bottom: 60px;
+      padding-top: 20px;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--text-primary);
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--text-secondary);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .alert {
+      border-left: 4px solid var(--accent);
+      background: var(--accent-light);
+      padding: 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+
+    .alert.important {
+      border-left-color: #f59e0b;
+      background: var(--warn-bg);
+      color: var(--warn-text);
+    }
+
+    .alert strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    pre {
+      background: var(--bg-code);
+      color: #f8fafc;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 0.85rem;
+      margin: 16px 0;
+      line-height: 1.5;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Courier New", monospace;
+      background: var(--accent-light);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.88em;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    details {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+    }
+
+    summary {
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-primary);
+    }
+
+    summary:hover {
+      color: var(--accent);
+    }
+
+    details p {
+      margin-top: 12px;
+      margin-bottom: 0;
+      color: var(--text-secondary);
+    }
+
+    .diagram {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      white-space: pre;
+      overflow-x: auto;
+      margin: 16px 0;
+      color: var(--text-primary);
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">LaaJ-dspy-looper 学習コンテンツ</div>
+      <h1>DSPy 体系的学習マスターガイド</h1>
+      <p class="subtitle">評価駆動開発 (Eval-Driven Development) によるプロンプト自動最適化の完全習得</p>
+    </header>
+
+    <nav class="toc">
+      <h3>📑 目次 (Chapters)</h3>
+      <ul>
+        <li><a href="#ch1">Chapter 1: DSPy メンタルモデル & 思考のパラダイムシフト</a></li>
+        <li><a href="#ch2">Chapter 2: 入出力設計 (Signature) & モジュール構築 (Module)</a></li>
+        <li><a href="#ch3">Chapter 3: 評価関数 (Metric) エンジニアリング & trace 引数</a></li>
+        <li><a href="#ch4">Chapter 4: 自動最適化 (Optimizer) の実践 (BootstrapFewShot & MIPROv2)</a></li>
+        <li><a href="#ch5">Chapter 5: LLM-as-a-Judge, 差分比較 & Observability (可視化)</a></li>
+      </ul>
+    </nav>
+
+    <!-- Chapter 1 -->
+    <section class="chapter" id="ch1">
+      <h2>Chapter 1: DSPy メンタルモデル & 思考のパラダイムシフト</h2>
+      <p>従来の「プロンプトエンジニアリング」から DSPy への最大の転換点は、<strong>PyTorch と同じメンタルモデルを持つこと</strong> です。</p>
+
+      <h3>1. 従来のプロンプト開発の限界 (Prompt Decay)</h3>
+      <p>人間が手作業で指示文やFew-Shotを調整したプロンプトは、LLM モデルを GPT-4o ➔ Claude 3.5 ➔ Gemini 3.7 へ変更した瞬間に精度が急低下（劣化）します。</p>
+
+      <div class="alert important">
+        <strong>💡 黄金律: 開発者とアルゴリズムの役割分担</strong>
+        開発者は「<strong>入出力の型 (Signature)</strong>」と「<strong>処理ロジック (Module)</strong>」だけをコードで定義します。<br>
+        「<strong>どんな指示文にするか</strong>」や「<strong>どんなFew-Shot例を埋め込むか</strong>」は <strong>Optimizer（アルゴリズム）に完全委譲</strong> します。
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>開発要素</th>
+            <th>PyTorch (機械学習)</th>
+            <th>DSPy (LLMプログラミング)</th>
+            <th>担当</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>タスク契約</strong></td>
+            <td>Tensor Shape</td>
+            <td><code>dspy.Signature</code> (input ➔ output)</td>
+            <td>🧑‍💻 開発者</td>
+          </tr>
+          <tr>
+            <td><strong>処理構造</strong></td>
+            <td><code>nn.Module</code></td>
+            <td><code>dspy.Module</code> (Predict, CoT等)</td>
+            <td>🧑‍💻 開発者</td>
+          </tr>
+          <tr>
+            <td><strong>評価基準</strong></td>
+            <td>Loss Function (損失関数)</td>
+            <td><code>Metric</code> (EM, LLM-as-a-Judge)</td>
+            <td>🧑‍💻 開発者</td>
+          </tr>
+          <tr>
+            <td><strong>最適化対象</strong></td>
+            <td>モデルの重み (Weights)</td>
+            <td><strong>指示文 (Instruction) & Few-Shot (Demos)</strong></td>
+            <td>🤖 Optimizer</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>理解度チェック</h3>
+      <details>
+        <summary>Q1. モデルを GPT-4o から Claude 3.5 に変えた際、DSPy では何を行いますか？</summary>
+        <p>A1. プロンプトを手動で書き直す必要はありません。設定を切り替えて Optimizer（MIPROv2等）の <code>compile()</code> を再実行するだけで、Claude 3.5 に特化した指示文とデモ例が自動生成されます。</p>
+      </details>
+    </section>
+
+    <!-- Chapter 2 -->
+    <section class="chapter" id="ch2">
+      <h2>Chapter 2: 入出力設計 (Signature) & モジュール構築 (Module)</h2>
+      <p>タスクの入出力仕様を宣言的に定義し、推論モジュールを組み立てます。</p>
+
+      <h3>1. Signature の定義</h3>
+      <pre><code>import dspy
+
+class ExpenseApprovalSignature(dspy.Signature):
+    """提出された経費申請内容を審査し、承認(approved)または否認(rejected)を判定する。"""
+
+    expense_details: str = dspy.InputField(desc="経費申請の詳細（品目、金額、理由等）")
+    approval_status: str = dspy.OutputField(desc="approved または rejected")</code></pre>
+
+      <h3>2. Module の選定と使い分け</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>モジュール</th>
+            <th>特徴</th>
+            <th>適用ユースケース</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>dspy.Predict</code></td>
+            <td>直接入力を出力に変換。思考トークンなし。</td>
+            <td>単純分類、短い定型変換 (最速・最安)</td>
+          </tr>
+          <tr>
+            <td><code>dspy.ChainOfThought</code></td>
+            <td><code>reasoning</code> フィールドを前挿入して推論。</td>
+            <td>論理的推論、審査、複合判定 (+5〜15% 精度向上)</td>
+          </tr>
+          <tr>
+            <td><code>dspy.ReAct</code></td>
+            <td>Thought ➔ Action ➔ Observation ループ。</td>
+            <td>Web検索やツール実行を伴うAgent</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Chapter 3 -->
+    <section class="chapter" id="ch3">
+      <h2>Chapter 3: 評価関数 (Metric) エンジニアリング & trace 引数</h2>
+      <p>DSPy の評価関数は、学習時と評価時で二重の役割を持ちます。</p>
+
+      <div class="diagram">
+Metric 呼び出し
+  ├── trace is not None (学習時) ➔ 損失関数モード (部分点 0.0〜1.0 を返し探索勾配を作る)
+  └── trace is None (評価時)     ➔ 評価指標モード (厳格な判定 1.0 or 0.0 を返す)
+      </div>
+
+      <pre><code>def robust_metric(example, pred, trace=None) -> float:
+    gold = getattr(example, "expected_status", "").strip().lower()
+    predicted = getattr(pred, "approval_status", "").strip().lower()
+    is_exact = (gold == predicted)
+
+    if trace is not None:
+        # 学習時は部分点を与えてOptimizerの探索を促す
+        if is_exact:
+            return 1.0
+        elif gold in predicted:
+            return 0.5  # 部分一致
+        return 0.0
+
+    # 評価時は完全一致のみ 1.0
+    return 1.0 if is_exact else 0.0</code></pre>
+    </section>
+
+    <!-- Chapter 4 -->
+    <section class="chapter" id="ch4">
+      <h2>Chapter 4: 自動最適化 (Optimizer) の実践 (BootstrapFewShot & MIPROv2)</h2>
+      <p>データ件数と目的に応じて最適な Optimizer を選択します。</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>データ量</th>
+            <th>推奨 Optimizer</th>
+            <th>最適化対象</th>
+            <th>特徴</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>〜10件</td>
+            <td><code>BootstrapFewShot</code></td>
+            <td>Few-Shot デモ例</td>
+            <td>成功トレースから良質なデモを高速抽出</td>
+          </tr>
+          <tr>
+            <td>10〜50件</td>
+            <td><code>BootstrapFewShotWithRandomSearch</code></td>
+            <td>Few-Shot デモ例</td>
+            <td>複数パターンの組み合わせ探索</td>
+          </tr>
+          <tr>
+            <td>50件以上</td>
+            <td><strong><code>MIPROv2</code></strong></td>
+            <td><strong>指示文 + Few-Shot</strong></td>
+            <td>Meta-LLM 指示文提案 ＋ Optuna ベイズ最適化 (最高精度)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Chapter 5 -->
+    <section class="chapter" id="ch5">
+      <h2>Chapter 5: LLM-as-a-Judge, 差分比較 & Observability (可視化)</h2>
+      
+      <h3>1. プロンプト差分の確認 (<code>laaj diff</code>)</h3>
+      <pre><code>uv run laaj diff --config experiments/example.yaml --module-path outputs/example_classification/optimized_module.json</code></pre>
+
+      <h3>2. Langfuse によるモニタリング</h3>
+      <p><code>openinference-instrumentation-dspy</code> により、LLM 呼び出しトレース、トークン消費量、レイテンシが Langfuse ダッシュボード上に自動記録されます。</p>
+    </section>
+
+    <footer>
+      <p>LaaJ-dspy-looper | Declarative Prompt Optimization Loop with DSPy</p>
+    </footer>
+  </div>
+</body>
+</html>
