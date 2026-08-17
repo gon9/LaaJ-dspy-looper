@@ -5,8 +5,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from laaj.observability.base import BaseObservability
 
-class LocalLogger:
+
+class LocalLogger(BaseObservability):
     """実験結果をローカルJSONファイルに記録するLogger"""
 
     def __init__(self, output_dir: str | Path = "outputs"):
@@ -17,6 +19,11 @@ class LocalLogger:
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+
+    def initialize(self) -> bool:
+        """ローカルロガーの初期化（ディレクトリの作成確認）"""
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        return True
 
     def log_experiment(
         self,

@@ -5,11 +5,12 @@ import logging
 from typing import Any
 
 from laaj.config import ObservabilityConfig
+from laaj.observability.base import BaseObservability
 
 logger = logging.getLogger(__name__)
 
 
-class LangfuseBackend:
+class LangfuseBackend(BaseObservability):
     """Langfuse / OpenTelemetry によるトレーシング・実験管理バックエンド"""
 
     def __init__(self, config: ObservabilityConfig):
@@ -62,12 +63,37 @@ class LangfuseBackend:
     def is_initialized(self) -> bool:
         return self._is_initialized
 
+    def log_experiment(
+        self,
+        experiment_name: str,
+        config: dict[str, Any],
+        results: dict[str, Any],
+        optimized_module_path: str,
+    ) -> str | None:
+        """実験結果を記録"""
+        logger.info(
+            f"Langfuse 実験メタデータを記録: {experiment_name}, results={results}, path={optimized_module_path}"
+        )
+        return f"langfuse://experiments/{experiment_name}"
+
+    def log_evaluation(
+        self,
+        experiment_name: str,
+        module_type: str,
+        scores: dict[str, float],
+        module_path: str | None = None,
+    ) -> str | None:
+        """評価結果を記録"""
+        logger.info(
+            f"Langfuse 評価メタデータを記録: {experiment_name}, module_type={module_type}, scores={scores}"
+        )
+        return f"langfuse://evaluations/{experiment_name}_{module_type}"
+
     def log_experiment_metadata(
         self,
         experiment_name: str,
         config: dict[str, Any],
         results: dict[str, Any],
     ) -> None:
-        """実験メタデータを記録"""
-        # トレーシング属性やタグとして設定
+        """実験メタデータを記録 (互換性用)"""
         logger.info(f"Langfuse 実験メタデータを記録: {experiment_name}, results={results}")

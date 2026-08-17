@@ -1,11 +1,12 @@
 """CLIコマンドのテスト"""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
 
 from laaj.cli import cli
+from laaj.runner import EvaluationResult, OptimizationResult
 
 
 @pytest.fixture
@@ -20,10 +21,12 @@ def test_cli_help(runner):
     assert "LaaJ-dspy-looper" in result.output
     assert "optimize" in result.output
     assert "evaluate" in result.output
+    assert "diff" in result.output
+    assert "export" in result.output
 
 
 def test_evaluate_missing_flag(runner):
-    """--baselineも--module-pathも指定しない場合にメッセージを出力して終了することをテスト"""
+    """--baselineも--module-pathも指定しない場合にメッセージを出力することをテスト"""
     result = runner.invoke(
         cli,
         [
@@ -31,19 +34,22 @@ def test_evaluate_missing_flag(runner):
             "--config",
             "experiments/example.yaml",
         ],
-        env={"OPENAI_API_KEY": "dummy_key"},
     )
     assert result.exit_code == 0
     assert "--baseline または --module-path のいずれかを指定してください" in result.output
 
 
-@patch("laaj.cli._configure_lm")
-@patch("laaj.cli._evaluate_module")
-@patch("laaj.cli.LocalLogger.log_evaluation")
-def test_evaluate_baseline(mock_log, mock_eval, mock_cfg_lm, runner):
+@patch("laaj.runner.evaluation.EvaluationRunner.run")
+def test_evaluate_baseline(mock_eval_run, runner):
     """--baseline での評価実行をテスト"""
-    mock_eval.return_value = 0.85
-    mock_log.return_value = "outputs/example_classification/eval_log.json"
+    mock_eval_run.return_value = EvaluationResult(
+        experiment_name="example_classification",
+        module_type="baseline",
+        test_score=0.85,
+        test_size=10,
+        module_path=None,
+        log_path="outputs/example_classification/eval.json",
+    )
 
     result = runner.invoke(
         cli,
@@ -53,24 +59,25 @@ def test_evaluate_baseline(mock_log, mock_eval, mock_cfg_lm, runner):
             "experiments/example.yaml",
             "--baseline",
         ],
-        env={"OPENAI_API_KEY": "dummy_key"},
     )
 
     assert result.exit_code == 0
-    assert "スコア (baseline): 0.8500" in result.output
-    mock_eval.assert_called_once()
+    assert "スコア (baseline) = 0.8500" in result.output
+    mock_eval_run.assert_called_once()
 
 
-@patch("laaj.cli._configure_lm")
-@patch("laaj.cli.OptimizerEngine.optimize")
-@patch("laaj.cli._evaluate_module")
-@patch("laaj.cli.LocalLogger.log_experiment")
-def test_optimize_command(mock_log, mock_eval, mock_opt, mock_cfg_lm, runner):
+@patch("laaj.runner.optimization.OptimizationRunner.run")
+def test_optimize_command(mock_opt_run, runner):
     """optimize コマンドの実行フローをテスト"""
-    mock_module = MagicMock()
-    mock_opt.return_value = mock_module
-    mock_eval.return_value = 0.92
-    mock_log.return_value = "outputs/example_classification/experiment_log.json"
+    mock_opt_run.return_value = OptimizationResult(
+        experiment_name="example_classification",
+        test_score=0.92,
+        train_size=20,
+        val_size=5,
+        test_size=5,
+        optimized_module_path="outputs/mod.json",
+        log_path="outputs/log.json",
+    )
 
     result = runner.invoke(
         cli,
@@ -79,21 +86,18 @@ def test_optimize_command(mock_log, mock_eval, mock_opt, mock_cfg_lm, runner):
             "--config",
             "experiments/example.yaml",
         ],
-        env={"OPENAI_API_KEY": "dummy_key"},
     )
 
     assert result.exit_code == 0
-    assert "最適化完了" in result.output
-    assert "テストスコア: 0.9200" in result.output
-    mock_opt.assert_called_once()
-    mock_module.save.assert_called_once()
+    assert "最適化が正常に完了しました" in result.output
+    assert "0.9200" in result.output
+    mock_opt_run.assert_called_once()
 
 
-@patch("laaj.cli.ModuleRegistry.instantiate_module")
-@patch("laaj.cli.ModuleInspector.diff_modules")
-def test_diff_command(mock_diff, mock_instantiate, runner, tmp_path):
+@patch("laaj.runner.diff_export.DiffRunner.run")
+def test_diff_command(mock_diff_run, runner, tmp_path):
     """diff コマンドの実行をテスト"""
-    mock_diff.return_value = {
+    mock_diff_run.return_value = {
         "diffs": [
             {
                 "predictor_name": "classifier",
@@ -126,10 +130,10 @@ def test_diff_command(mock_diff, mock_instantiate, runner, tmp_path):
     assert "Optimized prompt" in result.output
 
 
-@patch("laaj.cli.ModuleInspector.export_module")
-def test_export_command(mock_export, runner, tmp_path):
+@patch("laaj.runner.diff_export.ExportRunner.run")
+def test_export_command(mock_export_run, runner, tmp_path):
     """export コマンドの実行をテスト"""
-    mock_export.return_value = '{"exported": true}'
+    mock_export_run.return_value = '{"exported": true}'
     dummy_module_file = tmp_path / "module.json"
     dummy_module_file.write_text("{}", encoding="utf-8")
 
@@ -147,3 +151,38 @@ def test_export_command(mock_export, runner, tmp_path):
     )
     assert result.exit_code == 0
     assert '{"exported": true}' in result.output
+
+
+@patch("laaj.runner.optimization.OptimizationRunner.run")
+def test_optimize_command_error(mock_opt_run, runner):
+    """optimize コマンドでエラーが発生した場合の異常終了をテスト"""
+    mock_opt_run.side_effect = Exception("Optimization failed")
+
+    result = runner.invoke(
+        cli,
+        [
+            "optimize",
+            "--config",
+            "experiments/example.yaml",
+        ],
+    )
+    assert result.exit_code == 1
+    assert "エラーが発生しました" in result.output
+
+
+@patch("laaj.runner.evaluation.EvaluationRunner.run")
+def test_evaluate_command_error(mock_eval_run, runner):
+    """evaluate コマンドでエラーが発生した場合の異常終了をテスト"""
+    mock_eval_run.side_effect = Exception("Evaluation failed")
+
+    result = runner.invoke(
+        cli,
+        [
+            "evaluate",
+            "--config",
+            "experiments/example.yaml",
+            "--baseline",
+        ],
+    )
+    assert result.exit_code == 1
+    assert "エラーが発生しました" in result.output
