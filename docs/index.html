@@ -284,6 +284,7 @@
         <li><a href="#ch6">Chapter 6: 高度な技術深掘り (Assertions, Pydantic, 過学習対策)</a></li>
         <li><a href="#ch7">Chapter 7: コミュニティ最新動向 & 次世代技術 (GEPA, ReActV2, BetterTogether)</a></li>
         <li><a href="#practice">Practice: ハンズオン実践課題集 & 解答例</a></li>
+        <li><a href="#memo">📝 学習メモ・質問ノート (自動保存)</a></li>
       </ul>
     </nav>
 
@@ -505,9 +506,65 @@ dspy.Assert(
       </details>
     </section>
 
+    <!-- Notes / Questions Section -->
+    <section class="chapter" id="memo">
+      <h2>📝 学習メモ・質問ノート (My Questions & Notes)</h2>
+      <p>学習中に気になったことや後で質問したい点をここにメモできます（ブラウザに自動保存されます）。</p>
+      
+      <div class="card" style="background: var(--bg-secondary);">
+        <textarea id="quick-memo" style="width: 100%; min-height: 160px; padding: 14px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.95rem; background: var(--bg-primary); color: var(--text-primary); resize: vertical;" placeholder="例: Chapter 4 の MIPROv2 で num_trials を大きくした場合のコスト目安を後で質問する..."></textarea>
+        
+        <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+          <button id="copy-btn" style="padding: 8px 16px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">📋 メモをコピー</button>
+          <button id="clear-btn" style="padding: 8px 16px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: 6px; font-size: 0.88rem; cursor: pointer;">🗑️ クリア</button>
+          <span id="save-status" style="margin-left: auto; font-size: 0.85rem; color: var(--text-muted); align-self: center;">自動保存済み</span>
+        </div>
+      </div>
+    </section>
+
     <footer>
       <p>LaaJ-dspy-looper | Declarative Prompt Optimization Loop with DSPy</p>
     </footer>
   </div>
+
+  <script>
+    const memoArea = document.getElementById('quick-memo');
+    const saveStatus = document.getElementById('save-status');
+    const copyBtn = document.getElementById('copy-btn');
+    const clearBtn = document.getElementById('clear-btn');
+
+    // Load saved memo
+    const saved = localStorage.getItem('dspy_learning_memo');
+    if (saved) {
+      memoArea.value = saved;
+    }
+
+    // Auto save on input
+    memoArea.addEventListener('input', () => {
+      localStorage.setItem('dspy_learning_memo', memoArea.value);
+      saveStatus.textContent = '保存中...';
+      setTimeout(() => {
+        saveStatus.textContent = '自動保存済み ✓';
+      }, 300);
+    });
+
+    // Copy to clipboard
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(memoArea.value).then(() => {
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'コピー完了! ✓';
+        setTimeout(() => copyBtn.textContent = originalText, 2000);
+      });
+    });
+
+    // Clear memo
+    clearBtn.addEventListener('click', () => {
+      if (confirm('メモをクリアしますか？')) {
+        memoArea.value = '';
+        localStorage.removeItem('dspy_learning_memo');
+        saveStatus.textContent = 'クリアしました';
+      }
+    });
+  </script>
 </body>
 </html>

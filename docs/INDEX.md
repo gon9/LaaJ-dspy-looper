@@ -9,7 +9,8 @@
 スマートフォンや外出先の GitHub 上で快適に学習できるステップバイステップのチュートリアルです。
 
 - **[全章統合マスターガイド (LEARNING_GUIDE.md)](LEARNING_GUIDE.md)**: 全7章 ＋ 実践課題集を一気通読できる完全版ガイド
-- **[ブラウザ用リッチHTMLビューアー (index.html)](index.html)**: スマホ・PCのブラウザで読めるインタラクティブHTML
+- **[ブラウザ用リッチHTMLビューアー (index.html)](index.html)**: スマホ・PCのブラウザで読めるインタラクティブHTML（自動保存メモ機能付き）
+- **[📝 質問・疑問点メモ (QUESTIONS.md)](QUESTIONS.md)**: 気になった疑問や質問をサクッと書き留められるメモ帳
 
 ### 各章個別ドキュメント
 1. **[Chapter 1: DSPy メンタルモデル & 思考のパラダイムシフト](tutorials/01_mental_model.md)**（Prompt Decay 回避、開発者とアルゴリズムの黄金律）
